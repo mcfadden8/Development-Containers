@@ -1,0 +1,8 @@
+*.log
+*.swp
+*~
+.DS_Store
+secrets/
+*.key
+*.pem
+.env.local

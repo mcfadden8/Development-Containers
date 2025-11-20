@@ -1,0 +1,49 @@
+{
+  "name": "Spheral GCC 11 Dev",
+  "build": {
+    "dockerfile": "../spheral-gcc11.Dockerfile",
+    "context": ".."
+  },
+  "workspaceFolder": "/workspaces/spheral-gcc11",
+  "mounts": [
+    "source=${localEnv:HOME}/.ssh,target=/home/developer/.ssh,type=bind,readonly",
+    "source=${localEnv:HOME}/.container-data/spheral-gcc11/.zsh_history,target=/home/developer/.zsh_history,type=bind"
+  ],
+  "runArgs": [
+    "--hostname=dev-container",
+    "--volume=${env:SSH_AUTH_SOCK}:/ssh-agent:z",
+    "--env=SSH_AUTH_SOCK=/ssh-agent"
+  ],
+  "remoteUser": "developer",
+  "userEnvProbe": "none",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.cpptools",
+        "ms-vscode.cpptools-extension-pack",
+        "ms-vscode.cmake-tools",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-vscode.makefile-tools",
+        "eamodio.gitlens"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "terminal.integrated.profiles.linux": {
+          "zsh": {
+            "path": "/usr/bin/zsh"
+          }
+        },
+        "C_Cpp.default.compilerPath": "/usr/bin/g++-11",
+        "C_Cpp.default.cStandard": "c17",
+        "C_Cpp.default.cppStandard": "c++20",
+        "C_Cpp.default.intelliSenseMode": "linux-gcc-x64",
+        "python.defaultInterpreterPath": "/usr/bin/python3",
+        "files.trimTrailingWhitespace": true,
+        "files.insertFinalNewline": true,
+        "editor.formatOnSave": false
+      }
+    }
+  },
+  "postCreateCommand": "gcc --version && mpic++ --version && python3 --version && zsh --version"
+}
