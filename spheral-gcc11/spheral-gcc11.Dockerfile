@@ -71,6 +71,6 @@ RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master
 RUN echo '\n# Development environment' >> ${HOME}/.zshrc && \
     echo 'export PATH="${HOME}/.local/bin:${PATH}"' >> ${HOME}/.zshrc
 
-WORKDIR /workspaces/ubuntu-dev
+WORKDIR /workspaces/spheral-gcc11
 
 CMD ["/usr/bin/zsh"]
