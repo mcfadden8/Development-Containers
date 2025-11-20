@@ -62,25 +62,25 @@ fi
 
 echo ""
 echo "3. Checking Project Structure..."
-if [ -d ~/dev/ubuntu-dev ]; then
-    check_pass "Project directory exists: ~/dev/ubuntu-dev"
+if [ -d ~/dev/containers/spheral-gcc11 ]; then
+    check_pass "Project directory exists: ~/dev/containers/spheral-gcc11"
 else
-    check_fail "Project directory missing: ~/dev/ubuntu-dev"
+    check_fail "Project directory missing: ~/dev/containers/spheral-gcc11"
 fi
 
-if [ -f ~/dev/ubuntu-dev/Dockerfile ]; then
-    check_pass "Dockerfile exists"
+if [ -f ~/dev/containers/spheral-gcc11/Dockerfile ]; then
+    check_pass "spheral-gcc11.Dockerfile exists"
 else
-    check_fail "Dockerfile missing"
+    check_fail "spheral-gcc11.Dockerfile missing"
 fi
 
-if [ -d ~/dev/ubuntu-dev/.devcontainer ]; then
+if [ -d ~/dev/containers/spheral-gcc11/.devcontainer ]; then
     check_pass ".devcontainer directory exists"
 else
     check_fail ".devcontainer directory missing"
 fi
 
-if [ -f ~/dev/ubuntu-dev/.devcontainer/devcontainer.json ]; then
+if [ -f ~/dev/containers/spheral-gcc11/.devcontainer/devcontainer.json ]; then
     check_pass "devcontainer.json exists"
 else
     check_fail "devcontainer.json missing"
@@ -101,14 +101,14 @@ fi
 
 echo ""
 echo "5. Checking History Persistence..."
-if [ -d ~/.container-data/ubuntu-dev ]; then
+if [ -d ~/.container-data/spheral-gcc11 ]; then
     check_pass "Container data directory exists"
 else
     check_warn "Container data directory missing (will be created)"
-    echo "   mkdir -p ~/.container-data/ubuntu-dev"
+    echo "   mkdir -p ~/.container-data/spheral-gcc11"
 fi
 
-if [ -f ~/.container-data/ubuntu-dev/.zsh_history ]; then
+if [ -f ~/.container-data/spheral-gcc11/.zsh_history ]; then
     check_pass "Zsh history file exists"
 else
     check_warn "Zsh history file missing (will be created on first use)"
@@ -130,24 +130,24 @@ fi
 
 echo ""
 echo "7. Checking Container Image..."
-if podman images | grep -q ubuntu-dev; then
-    IMAGE_INFO=$(podman images --format "{{.Repository}}:{{.Tag}} - Created: {{.CreatedAt}}" | grep ubuntu-dev | head -1)
-    check_pass "ubuntu-dev image exists"
+if podman images | grep -q spheral-gcc11; then
+    IMAGE_INFO=$(podman images --format "{{.Repository}}:{{.Tag}} - Created: {{.CreatedAt}}" | grep spheral-gcc11 | head -1)
+    check_pass "spheral-gcc11 image exists"
     echo "   $IMAGE_INFO"
 else
-    check_warn "ubuntu-dev image not built yet"
-    echo "   cd ~/dev/ubuntu-dev && podman build -t ubuntu-dev:latest ."
+    check_warn "spheral-gcc11 image not built yet"
+    echo "   cd ~/dev/containers/spheral-gcc11 && podman build -t spheral-gcc11:latest ."
 fi
 
 echo ""
 echo "8. Checking Running Container..."
-if podman ps --format "{{.Image}}" | grep -q "vsc-ubuntu-dev"; then
+if podman ps --format "{{.Image}}" | grep -q "vsc-spheral-gcc11"; then
     CONTAINER=$(podman ps --format "{{.Names}}" | head -1)
     check_pass "Container is running: $CONTAINER"
 
     echo ""
     echo "9. Checking Container Configuration..."
-    if podman exec "$CONTAINER" test -d /workspaces/ubuntu-dev 2>/dev/null; then
+    if podman exec "$CONTAINER" test -d /workspaces/spheral-gcc11 2>/dev/null; then
         check_pass "Workspace mounted in container"
     else
         check_warn "Workspace not accessible in container"
@@ -184,7 +184,7 @@ if podman ps --format "{{.Image}}" | grep -q "vsc-ubuntu-dev"; then
     fi
 else
     check_warn "No container currently running"
-    echo "   Start container: cd ~/dev/ubuntu-dev && code ."
+    echo "   Start container: cd ~/dev/containers/spheral-gcc11 && code ."
     echo "   Then: F1 → 'Dev Containers: Reopen in Container'"
 fi
 
