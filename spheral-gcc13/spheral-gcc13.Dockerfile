@@ -79,7 +79,9 @@ RUN echo '\n# Development environment' >> ${HOME}/.zshrc && \
     echo 'setopt INC_APPEND_HISTORY' >> ${HOME}/.zshrc && \
     echo 'setopt HIST_IGNORE_DUPS' >> ${HOME}/.zshrc && \
     echo 'setopt HIST_FIND_NO_DUPS' >> ${HOME}/.zshrc && \
-    echo 'setopt HIST_REDUCE_BLANKS' >> ${HOME}/.zshrc
+    echo 'setopt HIST_REDUCE_BLANKS' >> ${HOME}/.zshrc && \
+    echo '\n# Dev notes integration' >> ${HOME}/.zshrc && \
+    echo '[ -f "/notes/.notes-functions.sh" ] && source "/notes/.notes-functions.sh"' >> ${HOME}/.zshrc
 
 WORKDIR /workspaces/spheral-gcc13
 
