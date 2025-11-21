@@ -69,7 +69,17 @@ RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master
     sed -i 's/plugins=(git)/plugins=(git zsh-autosuggestions zsh-syntax-highlighting)/' ${HOME}/.zshrc
 
 RUN echo '\n# Development environment' >> ${HOME}/.zshrc && \
-    echo 'export PATH="${HOME}/.local/bin:${PATH}"' >> ${HOME}/.zshrc
+    echo 'export PATH="${HOME}/.local/bin:${PATH}"' >> ${HOME}/.zshrc && \
+    echo '\n# Shared history configuration' >> ${HOME}/.zshrc && \
+    echo 'HISTFILE=~/.zsh_history' >> ${HOME}/.zshrc && \
+    echo 'HISTSIZE=1000000' >> ${HOME}/.zshrc && \
+    echo 'SAVEHIST=1000000' >> ${HOME}/.zshrc && \
+    echo 'setopt SHARE_HISTORY' >> ${HOME}/.zshrc && \
+    echo 'setopt APPEND_HISTORY' >> ${HOME}/.zshrc && \
+    echo 'setopt INC_APPEND_HISTORY' >> ${HOME}/.zshrc && \
+    echo 'setopt HIST_IGNORE_DUPS' >> ${HOME}/.zshrc && \
+    echo 'setopt HIST_FIND_NO_DUPS' >> ${HOME}/.zshrc && \
+    echo 'setopt HIST_REDUCE_BLANKS' >> ${HOME}/.zshrc
 
 WORKDIR /workspaces/spheral-gcc11
 

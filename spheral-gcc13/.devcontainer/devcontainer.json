@@ -8,7 +8,7 @@
   "workspaceMount": "source=${localEnv:HOME}/projects/spheral,target=/workspaces/spheral-gcc13,type=bind",
   "mounts": [
     "source=${localEnv:HOME}/.ssh,target=/home/developer/.ssh,type=bind,readonly",
-    "source=${localEnv:HOME}/.container-data/spheral-gcc13/.zsh_history,target=/home/developer/.zsh_history,type=bind"
+    "source=${localEnv:HOME}/.zsh_history,target=/home/developer/.zsh_history,type=bind"
   ],
   "runArgs": [
     "--hostname=dev-container",
