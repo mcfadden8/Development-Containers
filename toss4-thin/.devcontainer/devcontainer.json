@@ -1,0 +1,35 @@
+{
+  "name": "TOSS4 Thin Environment",
+  "build": {
+    "dockerfile": "../Dockerfile",
+    "context": "..",
+    "args": {
+      "UID": "1000",
+      "GID": "1000"
+    }
+  },
+  "workspaceFolder": "/home/developer/project",
+  "mounts": [
+    "source=/usr,target=/usr,type=bind,readonly",
+    "source=/lib64,target=/lib64,type=bind,readonly",
+    "source=/opt,target=/opt,type=bind,readonly",
+    "source=/usr/tce,target=/usr/tce,type=bind,readonly",
+    "source=${localEnv:HOME}/projects/${localWorkspaceFolderBasename},target=/home/developer/project,type=bind",
+    "source=${localEnv:HOME}/.container-data/toss4-${localWorkspaceFolderBasename}/.zsh_history,target=/home/developer/.zsh_history,type=bind"
+  ],
+  "containerEnv": {
+    "PATH": "/usr/tce/bin:/usr/local/bin:/usr/bin:/bin",
+    "MODULEPATH": "/usr/share/lmod/lmod/modulefiles:/etc/modulefiles:/usr/tce/modulefiles"
+  },
+  "remoteUser": "developer",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.cpptools",
+        "ms-vscode.cmake-tools",
+        "ms-python.python",
+        "eamodio.gitlens"
+      ]
+    }
+  }
+}
