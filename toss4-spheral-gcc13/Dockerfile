@@ -18,7 +18,6 @@ RUN apt-get update && apt-get install -y \
     g++-13 \
     gettext \
     git \
-    gnupg \
     htop \
     iputils-ping \
     less \
@@ -26,20 +25,12 @@ RUN apt-get update && apt-get install -y \
     libcurl4-openssl-dev \
     libexpat-dev \
     libffi-dev \
-    libgbm1 \
     libgdbm-dev \
-    libgtk-3-0 \
     libncurses-dev \
-    libnss3 \
     libopenmpi-dev \
     libreadline-dev \
-    libsecret-1-0 \
     libssl-dev \
     libtool \
-    libx11-xcb1 \
-    libxshmfence1 \
-    libxss1 \
-    libxtst6 \
     locales \
     ltrace \
     man-db \
@@ -62,22 +53,15 @@ RUN apt-get update && apt-get install -y \
     valgrind \
     vim \
     wget \
-    x11-apps \
-    xdg-utils \
     zsh \
     && locale-gen en_US.UTF-8 \
     && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 100 \
     && update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 100 \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && echo "127.0.0.1 toss4-dev-container" >> /etc/hosts
 
-RUN wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > /usr/share/keyrings/packages.microsoft.gpg && \
-    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main" > /etc/apt/sources.list.d/vscode.list && \
-    apt-get update && \
-    apt-get install -y code && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    echo "127.0.0.1 toss4-dev-container" >> /etc/hosts
+RUN curl -fsSL https://code-server.dev/install.sh | sh
 
 RUN userdel -r ubuntu 2>/dev/null || true && \
     groupdel ubuntu 2>/dev/null || true && \
@@ -101,15 +85,15 @@ RUN echo '\nexport PATH="${HOME}/.local/bin:${PATH}"' >> ${HOME}/.zshrc && \
     echo 'HISTSIZE=10000' >> ${HOME}/.zshrc && \
     echo 'SAVEHIST=10000' >> ${HOME}/.zshrc
 
-RUN code --install-extension ms-vscode.cpptools && \
-    code --install-extension ms-vscode.cpptools-extension-pack && \
-    code --install-extension ms-vscode.cmake-tools && \
-    code --install-extension ms-python.python && \
-    code --install-extension ms-python.vscode-pylance && \
-    code --install-extension ms-vscode.makefile-tools && \
-    code --install-extension eamodio.gitlens
+RUN code-server --install-extension ms-vscode.cpptools && \
+    code-server --install-extension ms-vscode.cpptools-extension-pack && \
+    code-server --install-extension ms-vscode.cmake-tools && \
+    code-server --install-extension ms-python.python && \
+    code-server --install-extension ms-python.vscode-pylance && \
+    code-server --install-extension ms-vscode.makefile-tools && \
+    code-server --install-extension eamodio.gitlens
 
-RUN mkdir -p ${HOME}/.config/Code/User && \
+RUN mkdir -p ${HOME}/.local/share/code-server/User && \
     echo '{ \
   "terminal.integrated.defaultProfile.linux": "zsh", \
   "C_Cpp.default.compilerPath": "/usr/bin/g++-13", \
@@ -120,8 +104,16 @@ RUN mkdir -p ${HOME}/.config/Code/User && \
   "files.trimTrailingWhitespace": true, \
   "files.insertFinalNewline": true, \
   "editor.formatOnSave": false \
-}' > ${HOME}/.config/Code/User/settings.json
+}' > ${HOME}/.local/share/code-server/User/settings.json
+
+RUN mkdir -p ${HOME}/.config/code-server && \
+    echo 'bind-addr: 0.0.0.0:8080' > ${HOME}/.config/code-server/config.yaml && \
+    echo 'auth: password' >> ${HOME}/.config/code-server/config.yaml && \
+    echo 'password: spheral' >> ${HOME}/.config/code-server/config.yaml && \
+    echo 'cert: false' >> ${HOME}/.config/code-server/config.yaml
 
 WORKDIR /workspaces/spheral
+
+EXPOSE 8080
 
 CMD ["/usr/bin/zsh"]

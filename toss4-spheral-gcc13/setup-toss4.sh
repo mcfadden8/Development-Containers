@@ -22,15 +22,6 @@ check_command podman || { echo "ERROR: podman not found"; exit 1; }
 check_command git || { echo "ERROR: git not found"; exit 1; }
 echo
 
-echo "Checking X11 forwarding..."
-if [ -z "$DISPLAY" ]; then
-    echo "⚠ WARNING: DISPLAY not set"
-    echo "  Make sure you connected with: ssh -X toss4-dev"
-else
-    echo "✓ DISPLAY is set: $DISPLAY"
-fi
-echo
-
 echo "Creating directory structure..."
 mkdir -p ~/.container-data/toss4-spheral-gcc13
 touch ~/.container-data/toss4-spheral-gcc13/.zsh_history
@@ -41,7 +32,7 @@ echo "✓ Created ~/projects/spheral/"
 echo
 
 echo "Making scripts executable..."
-chmod +x build.sh start.sh attach.sh
+chmod +x build.sh start.sh attach.sh stop.sh start-code-server.sh
 echo "✓ Scripts are executable"
 echo
 
@@ -53,6 +44,7 @@ else
 fi
 echo
 
+NODE=$(hostname)
 echo "=========================================="
 echo "Setup Complete!"
 echo "=========================================="
@@ -65,11 +57,15 @@ echo
 echo "2. Start the container:"
 echo "   ./start.sh"
 echo
-echo "3. Attach to the container:"
-echo "   ./attach.sh"
+echo "3. Start code-server:"
+echo "   ./start-code-server.sh"
 echo
-echo "4. Inside container, launch VSCode:"
-echo "   code /workspaces/spheral"
+echo "4. Access VSCode in your browser:"
+echo "   http://${NODE}:8080"
+echo "   Password: spheral"
+echo
+echo "5. Or attach to shell:"
+echo "   ./attach.sh"
 echo
 echo "Directories created:"
 echo "  Container config: ~/containers/toss4-spheral-gcc13/"

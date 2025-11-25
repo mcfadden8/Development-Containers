@@ -1,29 +1,27 @@
 # TOSS4 Spheral GCC 13 Development Container
 
-Full-featured development container for LLNL TOSS4 systems with VSCode and all development tools running inside the container.
+Full-featured development container for LLNL TOSS4 systems with browser-based VSCode (code-server).
 
 ## Purpose
 
-This is a fat container designed to run on TOSS4 systems as a complete, self-contained development environment. Everything runs inside the container:
+This is a complete development environment for TOSS4 systems:
 
 - GCC 13 compiler toolchain
 - OpenMPI for MPI development
 - Python 3 with development libraries
-- VSCode with extensions pre-installed
+- code-server (VSCode in browser) with extensions pre-installed
 - Git, vim, tree, and development utilities
 - Zsh with oh-my-zsh configuration
 - All build tools and libraries
 
 ## Architecture
 
-You SSH to TOSS4 with X11 forwarding, build the container, start it, attach to it, and run VSCode inside. The TOSS4 host only runs Podman - everything else is in the container.
+Access VSCode through your browser - no X11 forwarding needed, much more stable for VNC → SSH → compute node workflows.
 
 ```
-Local Machine
-    ↓ ssh -X
-TOSS4 Host (Podman only)
-    ↓ manages
-Container (VSCode, GCC, tools)
+Your Browser (in VNC or local)
+    ↓ http://compute-node:8080
+Container running code-server
 ```
 
 ## What's Included
@@ -34,7 +32,7 @@ Container (VSCode, GCC, tools)
 - OpenMPI 4.x
 
 **Development Tools:**
-- VSCode with extensions:
+- code-server (VSCode in browser) with extensions:
   - C/C++ Extension Pack
   - CMake Tools
   - Python
@@ -44,7 +42,7 @@ Container (VSCode, GCC, tools)
 - CMake, Ninja
 - GDB, Valgrind
 - Git, Vim, Tree
-- Python 3.10+
+- Python 3.12+
 
 **Shell:**
 - Zsh with oh-my-zsh
@@ -59,8 +57,9 @@ Container (VSCode, GCC, tools)
 - **GID:** 1000
 - **Shell:** /usr/bin/zsh
 - **Home:** /home/developer
+- **code-server password:** spheral
 
-**At runtime:** Your host UID (54987) is automatically remapped to container UID 1000, so files you create appear as owned by you on the host.
+**At runtime:** Your host UID is automatically remapped to container UID 1000, so files you create appear as owned by you on the host.
 
 ## Directory Structure
 
@@ -83,21 +82,6 @@ Container (VSCode, GCC, tools)
 ```
 
 ## Setup on TOSS4
-
-### Prerequisites
-
-**From your local machine, SSH with X11 forwarding:**
-
-```bash
-ssh -X toss4-dev
-```
-
-Verify X11 forwarding works:
-
-```bash
-echo $DISPLAY
-xeyes  # Should open a GUI window
-```
 
 ### First Time Setup
 
@@ -122,7 +106,7 @@ cd ~/containers/toss4-spheral-gcc13
 ./build.sh
 ```
 
-First build takes ~10-15 minutes (downloads and installs everything).
+First build takes ~5-10 minutes. Creates tar file automatically.
 
 ### Start the Container
 
@@ -130,51 +114,67 @@ First build takes ~10-15 minutes (downloads and installs everything).
 ./start.sh
 ```
 
-This starts the container in the background with all mounts configured.
+Shows the URL to access code-server.
 
-### Attach to the Container
+### Access VSCode in Browser
+
+**From your VNC session or local browser:**
+
+```
+http://<compute-node-name>:8080
+```
+
+For example: `http://rzadams1029:8080`
+
+**Password:** `spheral`
+
+### Start code-server
+
+```bash
+./start-code-server.sh
+```
+
+Or manually inside container:
 
 ```bash
 ./attach.sh
+code-server /workspaces/spheral
 ```
-
-You're now inside the container with zsh.
-
-### Launch VSCode
-
-**Inside the container:**
-
-```bash
-cd /workspaces/spheral
-code .
-```
-
-VSCode GUI opens on your local machine via X11 forwarding.
 
 ### Daily Workflow
 
 ```bash
-# SSH to TOSS4 with X11
-ssh -X toss4-dev
+# SSH to TOSS4
+ssh rzadams.llnl.gov
 
-# Start container (if not running)
+# Get flux allocation
+flux alloc -N 1 -t 8h
+
+# On compute node
 cd ~/containers/toss4-spheral-gcc13
+
+# Start container
 ./start.sh
 
-# Attach to container
-./attach.sh
+# Start code-server
+./start-code-server.sh
 
-# Inside container: launch VSCode
-code /workspaces/spheral
+# Open browser to: http://<node>:8080
+# Password: spheral
 
 # Work in VSCode...
 
-# When done, exit container shell (container keeps running)
-exit
+# When done, stop container
+podman stop spheral-dev
+```
 
-# Later: reattach anytime
+### Attach to Shell
+
+```bash
 ./attach.sh
 ```
+
+Gets you a zsh prompt inside the container for command-line work.
 
 ### Stop the Container
 
@@ -188,15 +188,13 @@ podman stop spheral-dev
 podman rm spheral-dev
 ```
 
-Then `./start.sh` to create fresh.
-
 ## Compiler Configuration
 
 GCC 13 is set as the default compiler:
 
 ```bash
-gcc --version    # gcc 13.x
-g++ --version    # g++ 13.x
+gcc --version    # gcc 13.3.0
+g++ --version    # g++ 13.3.0
 mpicxx --version # OpenMPI with g++ 13
 ```
 
@@ -204,7 +202,7 @@ VSCode is configured to use GCC 13 for IntelliSense.
 
 ## SSH Agent Forwarding
 
-SSH agent is forwarded from the host, allowing you to:
+SSH agent is forwarded from the host (if available), allowing you to:
 - Clone/push to GitHub from inside container
 - SSH to other systems using your host keys
 - No need to copy private keys into container
@@ -214,64 +212,68 @@ SSH agent is forwarded from the host, allowing you to:
 **What persists across container restarts:**
 - `/workspaces/spheral` - Your project files
 - Shell history
-- VSCode settings and extensions (stored in container)
+- code-server settings and extensions (stored in container)
 
 **What's ephemeral:**
-- Anything in `/home/martymcf` not mounted from host
+- Anything in `/home/developer` not mounted from host
 - Installed packages (unless you rebuild image)
+
+## Changing the Password
+
+Edit the Dockerfile and change the password line:
+
+```dockerfile
+echo 'password: YOUR_PASSWORD_HERE' >> ${HOME}/.config/code-server/config.yaml
+```
+
+Then rebuild.
 
 ## Troubleshooting
 
-**VSCode won't launch:**
+**Can't access http://node:8080:**
 
 ```bash
-# Check DISPLAY
-echo $DISPLAY
+# Check container is running
+podman ps
 
-# Check X11 forwarding
-xeyes
+# Check code-server is running in container
+podman exec spheral-dev ps aux | grep code-server
+
+# Start code-server if not running
+./start-code-server.sh
 ```
 
-If DISPLAY is empty, reconnect with `ssh -X toss4-dev`
+**Port 8080 already in use:**
 
-**Container won't start:**
+Edit the Dockerfile and change `8080` to another port, then rebuild.
 
-```bash
-# Check if container exists
-podman ps -a
+**Browser connection refused:**
 
-# Remove old container
-podman rm spheral-dev
-
-# Start fresh
-./start.sh
-```
-
-**X11 authentication errors:**
+Make sure you're using the correct hostname. From the compute node:
 
 ```bash
-# On TOSS4, regenerate .Xauthority
-rm ~/.Xauthority
-logout
-# SSH back in with -X
+hostname  # Use this exact name in the URL
 ```
 
 ## Image Size
 
-Base image: ~3.5GB (includes VSCode, all compilers, libraries, and tools)
-
-This is completely self-contained and portable across any TOSS4 node.
+Base image: ~2.3GB (no X11 libraries, lighter than GUI version)
 
 ## Scripts Reference
 
-- **build.sh** - Build the container image
-- **start.sh** - Start the container (creates if doesn't exist)
+- **build.sh** - Build the container image and save to tar
+- **start.sh** - Start the container
+- **start-code-server.sh** - Start code-server inside container
 - **attach.sh** - Attach to running container with zsh
+- **stop.sh** - Stop the container
 - **setup-toss4.sh** - One-time setup of directories
 
-## Notes
+## Advantages Over X11/GUI VSCode
 
-- Container uses `--network host` for simplicity
-- X11 socket and .Xauthority are mounted for GUI support
-- All source code lives on host filesystem (survives container deletion)
-- VSCode extensions and settings are inside container (need rebuild to persist)
+- ✅ No X11 forwarding needed
+- ✅ Stable across VNC sessions
+- ✅ Works through multiple SSH hops
+- ✅ Access from any browser
+- ✅ Better performance over network
+- ✅ Survives session resets
+- ✅ Smaller container image
