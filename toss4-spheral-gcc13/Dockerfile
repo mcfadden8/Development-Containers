@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive \
     TZ=America/Los_Angeles \
@@ -22,7 +22,6 @@ RUN apt-get update && apt-get install -y \
     htop \
     iputils-ping \
     less \
-    libasound2 \
     libbz2-dev \
     libcurl4-openssl-dev \
     libexpat-dev \
@@ -63,6 +62,7 @@ RUN apt-get update && apt-get install -y \
     valgrind \
     vim \
     wget \
+    x11-apps \
     xdg-utils \
     zsh \
     && locale-gen en_US.UTF-8 \
@@ -76,16 +76,17 @@ RUN wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor 
     apt-get update && \
     apt-get install -y code && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/* && \
+    echo "127.0.0.1 toss4-dev-container" >> /etc/hosts
 
 RUN userdel -r ubuntu 2>/dev/null || true && \
     groupdel ubuntu 2>/dev/null || true && \
-    groupadd -g 54987 martymcf && \
-    useradd -m -s /usr/bin/zsh -u 54987 -g 54987 martymcf && \
-    echo "martymcf ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+    groupadd -g 1000 developer && \
+    useradd -m -s /usr/bin/zsh -u 1000 -g 1000 developer && \
+    echo "developer ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
-USER martymcf
-WORKDIR /home/martymcf
+USER developer
+WORKDIR /home/developer
 
 RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended && \
     git clone https://github.com/zsh-users/zsh-autosuggestions ${HOME}/.oh-my-zsh/custom/plugins/zsh-autosuggestions && \

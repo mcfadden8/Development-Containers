@@ -54,11 +54,13 @@ Container (VSCode, GCC, tools)
 
 ## User Configuration
 
-- **Username:** martymcf
-- **UID:** 54987 (matches TOSS4 host UID)
-- **GID:** 54987
+- **Username:** developer
+- **UID:** 1000 (in container, remapped to host UID at runtime)
+- **GID:** 1000
 - **Shell:** /usr/bin/zsh
-- **Home:** /home/martymcf
+- **Home:** /home/developer
+
+**At runtime:** Your host UID (54987) is automatically remapped to container UID 1000, so files you create appear as owned by you on the host.
 
 ## Directory Structure
 
@@ -74,10 +76,10 @@ Container (VSCode, GCC, tools)
 
 **Inside Container:**
 ```
-/home/martymcf/                     # Container home directory
+/home/developer/                    # Container home directory
 /workspaces/spheral/                # Mounted from ~/projects/spheral
-/home/martymcf/.zsh_history         # Mounted from persistent storage
-/home/martymcf/.ssh/                # Mounted from host (readonly)
+/home/developer/.zsh_history        # Mounted from persistent storage
+/home/developer/.ssh/               # Mounted from host (readonly)
 ```
 
 ## Setup on TOSS4
