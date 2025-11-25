@@ -22,6 +22,15 @@ check_command podman || { echo "ERROR: podman not found"; exit 1; }
 check_command git || { echo "ERROR: git not found"; exit 1; }
 echo
 
+echo "Checking X11 forwarding..."
+if [ -z "$DISPLAY" ]; then
+    echo "⚠ WARNING: DISPLAY not set"
+    echo "  Make sure you connected with: ssh -X toss4-dev"
+else
+    echo "✓ DISPLAY is set: $DISPLAY"
+fi
+echo
+
 echo "Creating directory structure..."
 mkdir -p ~/.container-data/toss4-spheral-gcc13
 touch ~/.container-data/toss4-spheral-gcc13/.zsh_history
@@ -31,23 +40,9 @@ mkdir -p ~/projects/spheral
 echo "✓ Created ~/projects/spheral/"
 echo
 
-echo "Configuring Podman socket..."
-systemctl --user enable --now podman.socket 2>/dev/null || true
-if systemctl --user is-active --quiet podman.socket; then
-    echo "✓ Podman socket is active"
-else
-    echo "⚠ Podman socket not active, may need manual start"
-fi
-echo
-
-echo "Configuring VSCode for Podman..."
-mkdir -p ~/.config/Code/User
-cat > ~/.config/Code/User/settings.json << 'EOF'
-{
-  "dev.containers.dockerPath": "podman"
-}
-EOF
-echo "✓ Created ~/.config/Code/User/settings.json"
+echo "Making scripts executable..."
+chmod +x build.sh start.sh attach.sh
+echo "✓ Scripts are executable"
 echo
 
 echo "Checking SSH keys..."
@@ -63,14 +58,18 @@ echo "Setup Complete!"
 echo "=========================================="
 echo
 echo "Next steps:"
-echo "1. From WSL2 VSCode:"
-echo "   F1 → Remote-SSH: Connect to Host → toss4-dev"
 echo
-echo "2. Once connected to TOSS4:"
-echo "   File → Open Folder → ~/containers/toss4-spheral-gcc13"
+echo "1. Build the container image:"
+echo "   ./build.sh"
 echo
-echo "3. Open in container:"
-echo "   F1 → Dev Containers: Reopen in Container"
+echo "2. Start the container:"
+echo "   ./start.sh"
+echo
+echo "3. Attach to the container:"
+echo "   ./attach.sh"
+echo
+echo "4. Inside container, launch VSCode:"
+echo "   code /workspaces/spheral"
 echo
 echo "Directories created:"
 echo "  Container config: ~/containers/toss4-spheral-gcc13/"

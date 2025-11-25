@@ -1,17 +1,30 @@
 # TOSS4 Spheral GCC 13 Development Container
 
-Full-featured development container for LLNL TOSS4 systems with all development tools self-contained.
+Full-featured development container for LLNL TOSS4 systems with VSCode and all development tools running inside the container.
 
 ## Purpose
 
-This is a fat container designed to run on TOSS4 systems where you want a complete, reproducible development environment without relying on host-installed tools. Unlike the thin container approach, this includes:
+This is a fat container designed to run on TOSS4 systems as a complete, self-contained development environment. Everything runs inside the container:
 
 - GCC 13 compiler toolchain
 - OpenMPI for MPI development
 - Python 3 with development libraries
+- VSCode with extensions pre-installed
 - Git, vim, tree, and development utilities
 - Zsh with oh-my-zsh configuration
 - All build tools and libraries
+
+## Architecture
+
+You SSH to TOSS4 with X11 forwarding, build the container, start it, attach to it, and run VSCode inside. The TOSS4 host only runs Podman - everything else is in the container.
+
+```
+Local Machine
+    ↓ ssh -X
+TOSS4 Host (Podman only)
+    ↓ manages
+Container (VSCode, GCC, tools)
+```
 
 ## What's Included
 
@@ -21,6 +34,13 @@ This is a fat container designed to run on TOSS4 systems where you want a comple
 - OpenMPI 4.x
 
 **Development Tools:**
+- VSCode with extensions:
+  - C/C++ Extension Pack
+  - CMake Tools
+  - Python
+  - Pylance
+  - Makefile Tools
+  - GitLens
 - CMake, Ninja
 - GDB, Valgrind
 - Git, Vim, Tree
@@ -62,45 +82,111 @@ This is a fat container designed to run on TOSS4 systems where you want a comple
 
 ## Setup on TOSS4
 
+### Prerequisites
+
+**From your local machine, SSH with X11 forwarding:**
+
+```bash
+ssh -X toss4-dev
+```
+
+Verify X11 forwarding works:
+
+```bash
+echo $DISPLAY
+xeyes  # Should open a GUI window
+```
+
 ### First Time Setup
 
 ```bash
-# On TOSS4
 cd ~
 git clone git@github.com:mcfadden8/Development-Containers.git containers
 
-# Create persistent directories
 mkdir -p ~/.container-data/toss4-spheral-gcc13
 touch ~/.container-data/toss4-spheral-gcc13/.zsh_history
 mkdir -p ~/projects/spheral
 
-# Configure Podman
-systemctl --user enable --now podman.socket
+cd ~/containers/toss4-spheral-gcc13
+chmod +x *.sh
 ```
 
-### Configure VSCode for Podman
+## Usage
+
+### Build the Container
 
 ```bash
-mkdir -p ~/.config/Code/User
-cat > ~/.config/Code/User/settings.json << 'EOF'
-{
-  "dev.containers.dockerPath": "podman"
-}
-EOF
+cd ~/containers/toss4-spheral-gcc13
+./build.sh
 ```
 
-## Usage with VSCode Remote-SSH
+First build takes ~10-15 minutes (downloads and installs everything).
 
-### From WSL2
+### Start the Container
 
 ```bash
-# In VSCode (connected to WSL2)
-# F1 → Remote-SSH: Connect to Host → toss4-dev
-
-# Once connected to TOSS4:
-# File → Open Folder → ~/containers/toss4-spheral-gcc13
-# F1 → Dev Containers: Reopen in Container
+./start.sh
 ```
+
+This starts the container in the background with all mounts configured.
+
+### Attach to the Container
+
+```bash
+./attach.sh
+```
+
+You're now inside the container with zsh.
+
+### Launch VSCode
+
+**Inside the container:**
+
+```bash
+cd /workspaces/spheral
+code .
+```
+
+VSCode GUI opens on your local machine via X11 forwarding.
+
+### Daily Workflow
+
+```bash
+# SSH to TOSS4 with X11
+ssh -X toss4-dev
+
+# Start container (if not running)
+cd ~/containers/toss4-spheral-gcc13
+./start.sh
+
+# Attach to container
+./attach.sh
+
+# Inside container: launch VSCode
+code /workspaces/spheral
+
+# Work in VSCode...
+
+# When done, exit container shell (container keeps running)
+exit
+
+# Later: reattach anytime
+./attach.sh
+```
+
+### Stop the Container
+
+```bash
+podman stop spheral-dev
+```
+
+### Remove the Container
+
+```bash
+podman rm spheral-dev
+```
+
+Then `./start.sh` to create fresh.
 
 ## Compiler Configuration
 
@@ -112,6 +198,8 @@ g++ --version    # g++ 13.x
 mpicxx --version # OpenMPI with g++ 13
 ```
 
+VSCode is configured to use GCC 13 for IntelliSense.
+
 ## SSH Agent Forwarding
 
 SSH agent is forwarded from the host, allowing you to:
@@ -119,15 +207,69 @@ SSH agent is forwarded from the host, allowing you to:
 - SSH to other systems using your host keys
 - No need to copy private keys into container
 
+## Persistent Data
+
+**What persists across container restarts:**
+- `/workspaces/spheral` - Your project files
+- Shell history
+- VSCode settings and extensions (stored in container)
+
+**What's ephemeral:**
+- Anything in `/home/martymcf` not mounted from host
+- Installed packages (unless you rebuild image)
+
+## Troubleshooting
+
+**VSCode won't launch:**
+
+```bash
+# Check DISPLAY
+echo $DISPLAY
+
+# Check X11 forwarding
+xeyes
+```
+
+If DISPLAY is empty, reconnect with `ssh -X toss4-dev`
+
+**Container won't start:**
+
+```bash
+# Check if container exists
+podman ps -a
+
+# Remove old container
+podman rm spheral-dev
+
+# Start fresh
+./start.sh
+```
+
+**X11 authentication errors:**
+
+```bash
+# On TOSS4, regenerate .Xauthority
+rm ~/.Xauthority
+logout
+# SSH back in with -X
+```
+
 ## Image Size
 
-Base image: ~2.5GB (includes all development tools and libraries)
+Base image: ~3.5GB (includes VSCode, all compilers, libraries, and tools)
 
-This is self-contained and portable - the same image works on any TOSS4 node.
+This is completely self-contained and portable across any TOSS4 node.
 
-## Differences from WSL2 Containers
+## Scripts Reference
 
-- User is `martymcf` (UID 54987) instead of `developer` (UID 1000)
-- Designed for TOSS4 environment
-- Same tools and configuration as spheral-gcc13 on WSL2
-- Workspace mounted from `~/projects/spheral` instead of `~/dev/containers/...`
+- **build.sh** - Build the container image
+- **start.sh** - Start the container (creates if doesn't exist)
+- **attach.sh** - Attach to running container with zsh
+- **setup-toss4.sh** - One-time setup of directories
+
+## Notes
+
+- Container uses `--network host` for simplicity
+- X11 socket and .Xauthority are mounted for GUI support
+- All source code lives on host filesystem (survives container deletion)
+- VSCode extensions and settings are inside container (need rebuild to persist)
